@@ -94,5 +94,19 @@ func createTestDatabase(ctx *sql.Context) *memory.Database {
 	_ = table.Insert(ctx, sql.NewRow("Jane Doe", "jane@doe.com", types.MustJSON(`[]`), creationTime))
 	_ = table.Insert(ctx, sql.NewRow("John Doe", "john@doe.com", types.MustJSON(`["555-555-555"]`), creationTime))
 	_ = table.Insert(ctx, sql.NewRow("John Doe", "johnalt@doe.com", types.MustJSON(`[]`), creationTime))
+
+	if virtualTable, err := memory.NewVirtualTable("myvirtualtable", sql.NewPrimaryKeySchema(sql.Schema{
+		{Name: "name", Type: types.Text, Nullable: false, Source: tableName, PrimaryKey: true},
+		{Name: "email", Type: types.Text, Nullable: false, Source: tableName, PrimaryKey: true},
+		{Name: "phone_numbers", Type: types.JSON, Nullable: false, Source: tableName},
+		{Name: "created_at", Type: types.Datetime, Nullable: false, Source: tableName},
+	})); err == nil {
+		_ = virtualTable.Insert(ctx, sql.NewRow("Jane Deo", "janedeo@gmail.com", types.MustJSON(`["556-565-566", "777-777-777"]`), creationTime))
+		_ = virtualTable.Insert(ctx, sql.NewRow("Jane Doe", "jane@doe.com", types.MustJSON(`[]`), creationTime))
+		_ = virtualTable.Insert(ctx, sql.NewRow("John Doe", "john@doe.com", types.MustJSON(`["555-555-555"]`), creationTime))
+		_ = virtualTable.Insert(ctx, sql.NewRow("John Doe", "johnalt@doe.com", types.MustJSON(`[]`), creationTime))
+
+		db.AddTable(virtualTable.Name(), virtualTable)
+	}
 	return db
 }
